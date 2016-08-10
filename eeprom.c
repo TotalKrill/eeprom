@@ -88,22 +88,26 @@ void eeprom_tests(){
     eeprom_enable_write();
     chThdSleepMilliseconds(100);
     uint8_t status = eeprom_get_status();
-    if(status & 0x02)
+    if(status & 0x02){
         printf("Pass\n\r");
-    else
+    }
+    else{
         printf("Fail - %x\n\r", status);
+    }
 
     chThdSleepMilliseconds(100);
     // test write and read from eeprom
     uint32_t testint = random_int();
-    eeprom_write(0x00, &testint, sizeof(uint32_t));
+    eeprom_write(0x00, (uint8_t *)&testint, sizeof(uint32_t));
     uint32_t verify = 0;
-    eeprom_read(0x00, &verify, sizeof(uint32_t));
+    eeprom_read(0x00, (uint8_t *)&verify, sizeof(uint32_t));
     printf("\tTesting write: ");
-    if(verify == testint)
+    if(verify == testint){
         printf("Pass - %i\n\r", verify);
-    else
+    }
+    else{
         printf("Fail - %i\n\r", verify);
+    }
 
     chThdSleepMilliseconds(100);
     //test write larger than 16
@@ -149,14 +153,14 @@ void eeprom_tests(){
     static uint8_t verifyarray[sizeof(testarray)];
     eeprom_read(0x00, verifyarray, sizeof(testarray));
 
-    for(int i = 0; i < sizeof(testarray); i++)
+    for(unsigned int i = 0; i < sizeof(testarray); i++)
     {
-        if(testarray[i] == verifyarray[i])
-        {
+        if(testarray[i] == verifyarray[i]) {
             printf("\tarray [%i]: pass\n\r", i);
         }
-        else
+        else{
             printf("\tarray [%i]: fail\n\r", i);
+        }
 
     }
     chThdSleepMilliseconds(100);

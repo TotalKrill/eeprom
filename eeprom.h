@@ -45,6 +45,7 @@ void eeprom_init(void);
 void eeprom_write(uint8_t address, uint8_t *data, uint32_t length);
 void eeprom_read(uint8_t address, uint8_t *data, uint32_t length);
 uint8_t eeprom_get_status(void);
+void eeprom_enable_write(void);
 
 void eeprom_tests(void );
 
