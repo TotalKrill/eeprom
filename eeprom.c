@@ -7,6 +7,10 @@
  */
 #include "eeprom.h"
 
+void eeprom_read_uid48(uint8_t *uid){
+    eeprom_read(EEPROM_UID_ADDRESS, (uint8_t *)uid, 6);
+}
+
 void eeprom_select(void){
     spiAcquireBus(&EEPROM_SPI_BUS);  /* Acquire ownership of the bus.*/
     spiSelect(&EEPROM_SPI_BUS);      /* Slave Select assertion. */
@@ -20,7 +24,7 @@ void eeprom_unselect(void){
 }
 void eeprom_init(void){
     palSetPad(GPIOB, EEPROM_SPI_CS);
-    spiStart(&SPID2, &eeprom_spicfg);
+    spiStart(&EEPROM_SPI_BUS, &eeprom_spicfg);
 }
 
 void eeprom_write(uint8_t address,  uint8_t *data, uint32_t length){
@@ -70,6 +74,13 @@ void eeprom_read(uint8_t address, uint8_t *data, uint32_t length){
     eeprom_unselect();
 }
 
+void eeprom_set_status(uint8_t status){
+    eeprom_select();
+    uint8_t cmd [2] = {EEPROM_WSR, status};
+    spiSend(&EEPROM_SPI_BUS, 2, &cmd);
+    eeprom_unselect();
+}
+
 uint8_t eeprom_get_status(){
     eeprom_select();
     uint8_t status = EEPROM_RDSR;
@@ -83,21 +94,36 @@ uint8_t eeprom_get_status(){
 void eeprom_tests(){
     printf("EEPROM TESTS:\n\r");
 
+    printf("\tWrite protection on upper 1/4: " );
+    eeprom_set_status(0x66);
+    uint8_t status = eeprom_get_status();
+    if((status & 0x80) == 0){
+        printf("Pass\n\r");
+    }
+    else{
+        printf("Fail - 0x%x\n\r", status);
+        chThdSleepMilliseconds(100);
+        return;
+    }
+
+
     // test if write enable latch is set
     printf("\tEnabling write: ");
     eeprom_enable_write();
     chThdSleepMilliseconds(100);
-    uint8_t status = eeprom_get_status();
+    status = eeprom_get_status();
     if(status & 0x02){
         printf("Pass\n\r");
     }
     else{
-        printf("Fail - %x\n\r", status);
+        printf("Fail - 0x%x\n\r", status);
+        chThdSleepMilliseconds(100);
+        return;
     }
 
     chThdSleepMilliseconds(100);
     // test write and read from eeprom
-    uint32_t testint = random_int();
+    uint32_t testint = 123485;
     eeprom_write(0x00, (uint8_t *)&testint, sizeof(uint32_t));
     uint32_t verify = 0;
     eeprom_read(0x00, (uint8_t *)&verify, sizeof(uint32_t));
