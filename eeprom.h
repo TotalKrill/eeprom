@@ -8,9 +8,8 @@
 #ifndef EEPROM_H_
 #define EEPROM_H_
 #include "hal.h"
-#include "ch.h"
 
-#if 1 // To get printouts
+#if 0 // To get printouts
 #define printf(...) chprintf(&SD1, __VA_ARGS__)
 #include "chprintf.h"
 extern SerialDriver SD1;
